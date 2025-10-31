@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>БУРМАЛДА СГЕУ 💸</title>
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .casino {
+      text-align: center;
+      background: #222;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+      border: 3px solid #ff00ff;
+      max-width: 90vw;
+    }
+
+    h1 {
+      color: #ff00ff;
+      margin-bottom: 15px;
+      font-size: 2.2em;
+    }
+
+    .balance {
+      font-size: 1.4em;
+      margin: 10px 0;
+      color: #00ffcc;
+    }
+
+    .display {
+      font-size: 3.5em;
+      margin: 20px 0;
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc;
+      min-width: 220px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      border: 2px solid #00ffcc;
+      border-radius: 10px;
+      letter-spacing: 5px;
+    }
+
+    button {
+      background: #ff00ff;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1.4em;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #ff66ff;
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      margin-top: 15px;
+      min-height: 25px;
+      font-size: 1.1em;
+      color: gold;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      border: 2px solid #ff00ff;
+      text-align: center;
+      width: 120px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="casino" id="casino">
+    <h1>БУРМАЛДА СГЕУ 💸</h1>
+    <div class="balance">Баланс: <span id="balance">0</span> очков</div>
+    <div class="display" id="result">000</div>
+    <button id="spinBtn" onclick="spin()" disabled>КРУТИТЬ! (100)</button>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    let balance = 0;
+    const spinCost = 100;
+
+    // Запрос начального баланса
+    function requestInitialBalance() {
+      let input;
+      do {
+        input = prompt("💰 Введите начальный баланс (только число):");
+        if (input === null) {
+          // Пользователь нажал "Отмена"
+          input = "100"; // значение по умолчанию или можно выйти
+        }
+        balance = parseInt(input);
+      } while (isNaN(balance) || balance <= 0);
+
+      document.getElementById('balance').textContent = balance;
+      document.getElementById('spinBtn').disabled = balance < spinCost;
+    }
+
+    // Проверка выигрыша
+    function checkWin(digits) {
+      const [a, b, c] = digits;
+      if (a === b && b === c) {
+        return { win: true, amount: 500, message: "🔥 ТРИ В РЯД! +500 ОЧКОВ!" };
+      } else if (a === b || b === c || a === c) {
+        return { win: true, amount: 200, message: "🎉 ДВА ОДИНАКОВЫХ! +200 ОЧКОВ!" };
+      }
+      return { win: false, amount: 0, message: "" };
+    }
+
+    function spin() {
+      if (balance < spinCost) {
+        showMessage("❌ Недостаточно очков!");
+        return;
+      }
+
+      balance -= spinCost;
+      updateBalance();
+
+      const display = document.getElementById('result');
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = "КРУТИМ...";
+
+      let count = 0;
+      const maxCount = 25;
+      const interval = setInterval(() => {
+        const num = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        display.textContent = num;
+        count++;
+        if (count >= maxCount) {
+          clearInterval(interval);
+          // Финальный результат
+          const finalNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+          display.textContent = finalNum;
+
+          const digits = finalNum.split('').map(Number);
+          const result = checkWin(digits);
+
+          if (result.win) {
+            balance += result.amount;
+            showMessage(result.message);
+          } else {
+            showMessage("💀 Не повезло... Попробуй ещё!");
+          }
+
+          updateBalance();
+          document.getElementById('spinBtn').disabled = balance < spinCost;
+        }
+      }, 60);
+    }
+
+    function updateBalance() {
+      document.getElementById('balance').textContent = balance;
+    }
+
+    function showMessage(text) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      // Очистка сообщения через 3 секунды
+      setTimeout(() => {
+        if (msg.textContent === text) msg.textContent = "";
+      }, 3000);
+    }
+
+    // Запуск при загрузке
+    window.onload = requestInitialBalance;
+  </script>
+</body>
+</html>
